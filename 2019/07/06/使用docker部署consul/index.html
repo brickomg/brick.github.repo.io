@@ -1,0 +1,182 @@
+
+<!DOCTYPE html>
+<html lang class="loading">
+<head><meta name="generator" content="Hexo 3.9.0">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>使用docker部署consul - Hexo</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate">
+    <meta name="keywords" content="Fechin,"> 
+    <meta name="description" content="1. 创建docker虚拟机1. 提前安装好docker与virtualbox，然后创建4个虚拟机1234docker-machine create --driver virtualbox Cons,"> 
+    <meta name="author" content="John Doe"> 
+    <link rel="alternative" href="atom.xml" title="Hexo" type="application/atom+xml"> 
+    <link rel="icon" href="/brick.github.repo.io/img/favicon.png"> 
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+    <link rel="stylesheet" href="/brick.github.repo.io/css/diaspora.css">
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({
+              google_ad_client: "ca-pub-8691406134231910",
+              enable_page_level_ads: true
+         });
+    </script>
+    <script async custom-element="amp-auto-ads" src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">
+    </script>
+</head>
+</html>
+<body class="loading">
+    <span id="config-title" style="display:none">Hexo</span>
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="icon-home image-icon" href="javascript:;" data-url="https://brickomg.github.io/brick.github.repo.io"></a>
+    <div title="播放/暂停" class="icon-play"></div>
+    <h3 class="subtitle">使用docker部署consul</h3>
+    <div class="social">
+        <!--<div class="like-icon">-->
+            <!--<a href="javascript:;" class="likeThis active"><span class="icon-like"></span><span class="count">76</span></a>-->
+        <!--</div>-->
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+
+    <div class="section">
+        <div class="article">
+    <div class='main'>
+        <h1 class="title">使用docker部署consul</h1>
+        <div class="stuff">
+            <span>七月 06, 2019</span>
+            
+
+        </div>
+        <div class="content markdown">
+            <h2 id="1-创建docker虚拟机"><a href="#1-创建docker虚拟机" class="headerlink" title="1. 创建docker虚拟机"></a>1. 创建docker虚拟机</h2><h5 id="1-提前安装好docker与virtualbox，然后创建4个虚拟机"><a href="#1-提前安装好docker与virtualbox，然后创建4个虚拟机" class="headerlink" title="1. 提前安装好docker与virtualbox，然后创建4个虚拟机"></a>1. 提前安装好docker与virtualbox，然后创建4个虚拟机</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">docker-machine create --driver virtualbox Consul1</span><br><span class="line">docker-machine create --driver virtualbox Consul2</span><br><span class="line">docker-machine create --driver virtualbox Consul3</span><br><span class="line">docker-machine create --driver virtualbox Consul4</span><br></pre></td></tr></table></figure>
+
+<h5 id="2-修改docker仓库为国内-重启虚拟机的docker"><a href="#2-修改docker仓库为国内-重启虚拟机的docker" class="headerlink" title="2. 修改docker仓库为国内,重启虚拟机的docker"></a>2. 修改docker仓库为国内,重启虚拟机的docker</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">sudo vi /etc/docker/daemon.json</span><br><span class="line">&#123;</span><br><span class="line">  &quot;experimental&quot; : true,</span><br><span class="line">  &quot;registry-mirrors&quot; : [</span><br><span class="line">    &quot;https://registry.docker-cn.com&quot;</span><br><span class="line">  ]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">sudo /etc/init.d/docker restart</span><br></pre></td></tr></table></figure>
+
+<h2 id="2-部署consul"><a href="#2-部署consul" class="headerlink" title="2. 部署consul"></a>2. 部署consul</h2><h5 id="1-启动consul-server"><a href="#1-启动consul-server" class="headerlink" title="1. 启动consul server"></a>1. 启动consul server</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">docker run -h cnode1  --name consul -v /config:/config -v /data:/data --restart=always\</span><br><span class="line">    -p   8300:8300 \</span><br><span class="line">    -p   8301:8301 \</span><br><span class="line">    -p   8301:8301/udp \</span><br><span class="line">    -p   8302:8302 \</span><br><span class="line">    -p   8302:8302/udp \</span><br><span class="line">    -p   8400:8400 \</span><br><span class="line">    -p   8500:8500 \</span><br><span class="line">progrium/consul -server \</span><br><span class="line">-bootstrap-expect 1 \</span><br><span class="line">-advertise 192.168.99.100</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>然后依次在剩下每台虚拟机中部署并加入集群</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">docker run -h cnode2 --name consul -d -v /config:/config -v /data:/data --restart=always\</span><br><span class="line">    -p   8300:8300 \</span><br><span class="line">    -p   8301:8301/udp \</span><br><span class="line">    -p   8302:8302 \</span><br><span class="line">    -p   8302:8302/udp \</span><br><span class="line">    -p   8400:8400 \</span><br><span class="line">    -p   8500:8500 \</span><br><span class="line">progrium/consul -server \</span><br><span class="line">-advertise 192.168.99.101 \</span><br><span class="line">-join  192.168.99.100</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>部署完成效果如下<br><img src="https://upload-images.jianshu.io/upload_images/13918519-4bef52b91d93f28b.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="image.png"></p>
+</blockquote>
+<h5 id="2-部署并注册服务"><a href="#2-部署并注册服务" class="headerlink" title="2.部署并注册服务"></a>2.部署并注册服务</h5><p>部署、注册nginx</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">curl -X PUT -d &apos;&#123;&quot;id&quot;: &quot;nginx&quot;,&quot;name&quot;: &quot;nginx&quot;,&quot;address&quot;: &quot;192.168.99.102&quot;,&quot;port&quot;: 80,&quot;checks&quot;: [&#123;&quot;http&quot;: &quot;http://192.168.99.102/&quot;,&quot;interval&quot;: &quot;5s&quot;&#125;]&#125;&apos; http://127.0.0.1:8500/v1/agent/service/register</span><br></pre></td></tr></table></figure>
+
+<p><img src="https://upload-images.jianshu.io/upload_images/13918519-33d65baad848d087.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="image.png"></p>
+<h2 id="传输加密"><a href="#传输加密" class="headerlink" title="传输加密"></a>传输加密</h2><h4 id="1-通信结构"><a href="#1-通信结构" class="headerlink" title="1. 通信结构"></a>1. 通信结构</h4><p><img src="https://upload-images.jianshu.io/upload_images/13918519-ca109ed5d1fa2faf.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="QQ20190520-230253.png"></p>
+<h4 id="2-加密配置"><a href="#2-加密配置" class="headerlink" title="2. 加密配置"></a>2. 加密配置</h4><p>从图中我们可以看到，consul有几种通信方式，有RPC和gossip，gossip用于维护集群节点关系，也就是包括leader选举、状态检查等等维护集群关系的通信都通过gossip来进行，gossip之间通信安全通过。数据的请求通过RPC协议进行数据传输。<br>为保障通信安全，两种通信方式都有各自的加密方法<br><code>goosip</code>: 通过对称加密来对集群协议进行加密</p>
+<blockquote>
+<p>执行<code>consul keygen</code> 生成密钥，具体配置方法根据自身需求来，官方参考页<br>面:<a href="https://learn.hashicorp.com/consul/security-networking/agent-encryption#enable-gossip-encryption-existing-cluster" target="_blank" rel="noopener">https://learn.hashicorp.com/consul/security-networking/agent-encryption#enable-gossip-encryption-existing-cluster</a><br><code>RPC</code>: 通过ca数字证书进行可靠性验证，加密通过TLS进行<br><code>consul tls cert create -server</code><br> <code>consul tls cert create -client</code><br> 两个命令生成证书，具体配置参数参考官方文档：<br> <a href="https://learn.hashicorp.com/consul/security-networking/certificates" target="_blank" rel="noopener">https://learn.hashicorp.com/consul/security-networking/certificates</a></p>
+</blockquote>
+<p> 其他内容待日后补充</p>
+
+            <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+            <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="false">
+                <source type="audio/mpeg" src="">
+            </audio>
+            
+                <ul id="audio-list" style="display:none">
+                    
+                        <li title='0' data-url='http://link.hhtjim.com/163/5146554.mp3'></li>
+                    
+                        <li title='1' data-url='http://link.hhtjim.com/qq/001faIUs4M2zna.mp3'></li>
+                    
+                </ul>
+            
+        </div>
+        
+    <div id='gitalk-container' class="comment link"
+        data-ae='false'
+        data-ci=''
+        data-cs=''
+        data-r=''
+        data-o=''
+        data-a=''
+        data-d='false'
+    >查看评论</div>
+
+
+    </div>
+    
+</div>
+
+
+    </div>
+</div>
+</body>
+<script src="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/brick.github.repo.io/js/plugin.js"></script>
+<script src="/brick.github.repo.io/js/diaspora.js"></script>
+<link rel="stylesheet" href="/brick.github.repo.io/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/brick.github.repo.io/photoswipe/default-skin/default-skin.css">
+<script src="/brick.github.repo.io/photoswipe/photoswipe.min.js"></script>
+<script src="/brick.github.repo.io/photoswipe/photoswipe-ui-default.min.js"></script>
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+</html>

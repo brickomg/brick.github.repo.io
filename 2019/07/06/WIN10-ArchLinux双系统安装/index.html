@@ -1,0 +1,247 @@
+
+<!DOCTYPE html>
+<html lang class="loading">
+<head><meta name="generator" content="Hexo 3.9.0">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WIN10 + ArchLinux双系统安装 - Hexo</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate">
+    <meta name="keywords" content="Fechin,"> 
+    <meta name="description" content="
+闲来没事折腾玩下linux，台式机win10留着好歹玩玩游戏，不然GTX1060就浪费了是吧，恩。这里使用的是UEFI+GPT安装，演示图就在虚拟机给大家展示了，安装的时候并没有截图废话不多说，直,"> 
+    <meta name="author" content="John Doe"> 
+    <link rel="alternative" href="atom.xml" title="Hexo" type="application/atom+xml"> 
+    <link rel="icon" href="/brick.github.repo.io/img/favicon.png"> 
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+    <link rel="stylesheet" href="/brick.github.repo.io/css/diaspora.css">
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({
+              google_ad_client: "ca-pub-8691406134231910",
+              enable_page_level_ads: true
+         });
+    </script>
+    <script async custom-element="amp-auto-ads" src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">
+    </script>
+</head>
+</html>
+<body class="loading">
+    <span id="config-title" style="display:none">Hexo</span>
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="icon-home image-icon" href="javascript:;" data-url="https://brickomg.github.io/brick.github.repo.io"></a>
+    <div title="播放/暂停" class="icon-play"></div>
+    <h3 class="subtitle">WIN10 + ArchLinux双系统安装</h3>
+    <div class="social">
+        <!--<div class="like-icon">-->
+            <!--<a href="javascript:;" class="likeThis active"><span class="icon-like"></span><span class="count">76</span></a>-->
+        <!--</div>-->
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+
+    <div class="section">
+        <div class="article">
+    <div class='main'>
+        <h1 class="title">WIN10 + ArchLinux双系统安装</h1>
+        <div class="stuff">
+            <span>七月 06, 2019</span>
+            
+
+        </div>
+        <div class="content markdown">
+            <blockquote>
+<p>闲来没事折腾玩下linux，台式机win10留着好歹玩玩游戏，不然GTX1060就浪费了是吧，恩。这里使用的是UEFI+GPT安装，演示图就在虚拟机给大家展示了，安装的时候并没有截图<br>废话不多说，直接上手干吧，先看看效果图（晒桌面）</p>
+</blockquote>
+<p><img src="https://upload-images.jianshu.io/upload_images/13918519-107dba28e482b73f.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="2018-09-22 22-10-50 的屏幕截图.png"></p>
+<p>#1. 制作启动U盘<br>这个。。这个不用教吧，下载好的iso文件，在windows下用powerISO制作成可启动U盘，或者你有其他方式也可以，给系统预留一定的空间，在windows磁盘管理下分一点空间出来就行</p>
+<blockquote>
+<p>从U盘启动进入ArchLinux</p>
+</blockquote>
+<p>#2. 分区</p>
+<blockquote>
+<p>从硬盘分区，分区工具有很多fdisk，gdisk，cfdisk等，再三强调不要误删了windows的分区<br>这里使用gdisk进行分区</p>
+<ul>
+<li>创建分区<br>基本的话需要再创建3个分区分别用于挂载/,/home,swap，后面将用编号X.Y.Z表示, W表示你的EFI分区，根分区创建用来安装基本系统，建议分区20G以上，我这里虚拟机就分很小无所谓了<br><img src="https://upload-images.jianshu.io/upload_images/13918519-2e1dbdbbee88d744.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="image.png"><br>依葫芦画瓢分出2个分区来，一个用于挂载根分区，20G以上，一个挂载home分区，这个按自己需要制定，一般大部分空间都在这里，还需要留出一个2-8G左右的空间用于swap分区，创建swap分区截图如下<br><img src="https://upload-images.jianshu.io/upload_images/13918519-76f6c85e5c6e9023.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="image.png"><br>可以看到linux swap的分区编码为8200，所以这样创建swap分区：<br><img src="https://upload-images.jianshu.io/upload_images/13918519-28b61725844d406a.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="image.png"><br>创建分区完成，输入w回车，保存分区信息<br>我的机器分区是这样：</li>
+</ul>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">$ sudo fdisk -l /dev/sda</span><br><span class="line">Disk /dev/sda：111.8 GiB，120034123776 字节，234441648 个扇区</span><br><span class="line">单元：扇区 / 1 * 512 = 512 字节</span><br><span class="line">扇区大小(逻辑/物理)：512 字节 / 512 字节</span><br><span class="line">I/O 大小(最小/最佳)：512 字节 / 512 字节</span><br><span class="line">磁盘标签类型：gpt</span><br><span class="line">磁盘标识符：26760925-14B9-4A5E-8407-F40F33B77B5C</span><br><span class="line"></span><br><span class="line">设备            起点      末尾     扇区  大小 类型</span><br><span class="line">/dev/sda1         34   1228799  1228766  600M EFI 系统</span><br><span class="line">/dev/sda2    1228800   1261567    32768   16M Microsoft 保留</span><br><span class="line">/dev/sda3    1261568  91747902 90486335 43.2G Microsoft 基本数据</span><br><span class="line">/dev/sda4   91748352  93388799  1640448  801M Windows 恢复环境</span><br><span class="line">/dev/sda5   93388800 156303359 62914560   30G Linux 文件系统</span><br><span class="line">/dev/sda6  156303360 221929471 65626112 31.3G Linux 文件系统</span><br><span class="line">/dev/sda7  221929472 226123775  4194304    2G Linux swap</span><br></pre></td></tr></table></figure>
+
+<p>注意一下这个EFI分区，记住他的设备名，我们需要把他挂载到系统的boot目录下，后面会说明</p>
+<ul>
+<li>格式化分区<br>格式化你创建的分区：<br>根分区和home很简单，执行下面命令：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mkfs.ext4 -L &quot;ArchLinux&quot; /dev/sdaX  #X是你的设备名，gdisk -l /dev/sda可以查看设备号</span><br><span class="line">mkfs.ext4 -L &quot;LinuxHome&quot; /dev/sdaY</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<p>swap分区，也很简单，执行:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mkswap -L &quot;LinuxSwap&quot; /dev/sdaZ</span><br><span class="line">swapon /dev/sdaZ</span><br></pre></td></tr></table></figure>
+
+<p>执行free看看swap是否已经启用</p>
+<p>#3. 挂载分区</p>
+<blockquote>
+<p>为了将系统安装到你刚才创建的分区，那肯定要把分区挂上来然后往里面装系统是吧，那就先mount他们吧</p>
+</blockquote>
+<ul>
+<li><p>挂载根分区到/mnt</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">mount /dev/sdaX /mnt</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>挂载home分区到/mnt/home，挂载他的原因我们后面可以直接把现在的挂载情况写入到fstab，以后开机就直接挂载了</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mkdir /mnt/home</span><br><span class="line">mount /dev/sdaY /mnt/home</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>挂载EFI分区，我们后面需要把引导程序安装到这里，所以这一步很重要：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">mkdir -p /mnt/boot/efi</span><br><span class="line">mount /dev/sdaW /mnt/boot/efi</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<p>然后就可以准备开始安装系统了，在此之前，我们可以修改下源，改到速度比较快的国内，修改<br>/etc/pacman.d/mirrorlist</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">nano /etc/pacman.d/mirrorlist</span><br><span class="line">#在一堆server前面，加入</span><br><span class="line">Server = http://mirrors.163.com/archlinux/$repo/os/$arch</span><br><span class="line">#ctrl+o回车写入，ctrl+x退出</span><br><span class="line">#然后更新一下源</span><br><span class="line">pacman -Syy</span><br></pre></td></tr></table></figure>
+
+<p>#4. 安装系统</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pacstrap -i /mnt base base-devel</span><br></pre></td></tr></table></figure>
+
+<p>一顿回车，就开始安装了！<br>刚才我们挂载了一堆分区，可以考虑把这些写入fstab，以便开机自行挂载：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">genfstab -U /mnt &gt;&gt; /mnt/etc/fstab</span><br></pre></td></tr></table></figure>
+
+<p>#5. 安装引导</p>
+<blockquote>
+<p>系统已经安装好了，已经可以用arch-chroot 进入了，但是这时还没有引导，还不能开机直接进入，所以来安装引导吧</p>
+</blockquote>
+<ul>
+<li>进入系统与修改配置<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">arch-chroot /mnt</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<p>进入系统然后可以进行编码的设置<br>打开/etc/locale.gen<br>需要把两个编码的注释去掉：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">en_US.UTF-8 UTF-8</span><br><span class="line">zh_CN.UTF-8 UTF-8</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">echo LANG=en_US.UTF-8 &gt; /etc/locale.conf #修改环境变量</span><br></pre></td></tr></table></figure>
+
+<p>时区：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>安装引导<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">pacman -S grub </span><br><span class="line">pacman -S efibootmgr</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<p>安装这两个包<br>安装os-prober自动发现多系统：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">pacman -S os-prober</span><br></pre></td></tr></table></figure>
+
+<p>这个时候他还没有发现到windows系统，我们继续往下<br>安装引导到硬盘：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">grub-install /dev/sda --target=x86_64-efi --efi-directory=/boot/efi --bootloader-id=ArchLinux</span><br></pre></td></tr></table></figure>
+
+<p>没出意外，会出现No error reported，看下 /boot/efi/EFI/arch下有没有grubx64.efi文件，有的话就安装成功了<br>生成一下配置文件：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">grub-mkconfig -o /boot/grub/grub.cfg</span><br></pre></td></tr></table></figure>
+
+<p>联网的问题忘了说一下，如果是笔记本的话，连接wifi需要安装wpa_supplicant包，并且可能还需要去下载相应驱动，大家可以去<a href="https://aur.archlinux.org/搜索一下相关内容" target="_blank" rel="noopener">https://aur.archlinux.org/搜索一下相关内容</a></p>
+<p>exit退出系统，并且卸载分区，umount -R /mnt  </p>
+<blockquote>
+<p>至此，ArchLinux已经安装完成，重启进入系统吧</p>
+</blockquote>
+
+            <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+            <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="false">
+                <source type="audio/mpeg" src="">
+            </audio>
+            
+                <ul id="audio-list" style="display:none">
+                    
+                        <li title='0' data-url='http://link.hhtjim.com/163/5146554.mp3'></li>
+                    
+                        <li title='1' data-url='http://link.hhtjim.com/qq/001faIUs4M2zna.mp3'></li>
+                    
+                </ul>
+            
+        </div>
+        
+    <div id='gitalk-container' class="comment link"
+        data-ae='false'
+        data-ci=''
+        data-cs=''
+        data-r=''
+        data-o=''
+        data-a=''
+        data-d='false'
+    >查看评论</div>
+
+
+    </div>
+    
+</div>
+
+
+    </div>
+</div>
+</body>
+<script src="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/brick.github.repo.io/js/plugin.js"></script>
+<script src="/brick.github.repo.io/js/diaspora.js"></script>
+<link rel="stylesheet" href="/brick.github.repo.io/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/brick.github.repo.io/photoswipe/default-skin/default-skin.css">
+<script src="/brick.github.repo.io/photoswipe/photoswipe.min.js"></script>
+<script src="/brick.github.repo.io/photoswipe/photoswipe-ui-default.min.js"></script>
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+</html>

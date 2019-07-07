@@ -1,0 +1,232 @@
+
+<!DOCTYPE html>
+<html lang class="loading">
+<head><meta name="generator" content="Hexo 3.9.0">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>使用Docker部署Django服务 - Hexo</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate">
+    <meta name="keywords" content="Fechin,"> 
+    <meta name="description" content="
+本例中会用到的额外服务有mysql，rabbitmq。部署中有一些需要特别注意的地方也会给大家说一说。
+
+1.创建专属网络开始前先创建一个专用的虚拟网络：
+1brick@brick:~$ dock,"> 
+    <meta name="author" content="John Doe"> 
+    <link rel="alternative" href="atom.xml" title="Hexo" type="application/atom+xml"> 
+    <link rel="icon" href="/brick.github.repo.io/img/favicon.png"> 
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+    <link rel="stylesheet" href="/brick.github.repo.io/css/diaspora.css">
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({
+              google_ad_client: "ca-pub-8691406134231910",
+              enable_page_level_ads: true
+         });
+    </script>
+    <script async custom-element="amp-auto-ads" src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">
+    </script>
+</head>
+</html>
+<body class="loading">
+    <span id="config-title" style="display:none">Hexo</span>
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="icon-home image-icon" href="javascript:;" data-url="https://brickomg.github.io/brick.github.repo.io"></a>
+    <div title="播放/暂停" class="icon-play"></div>
+    <h3 class="subtitle">使用Docker部署Django服务</h3>
+    <div class="social">
+        <!--<div class="like-icon">-->
+            <!--<a href="javascript:;" class="likeThis active"><span class="icon-like"></span><span class="count">76</span></a>-->
+        <!--</div>-->
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+
+    <div class="section">
+        <div class="article">
+    <div class='main'>
+        <h1 class="title">使用Docker部署Django服务</h1>
+        <div class="stuff">
+            <span>七月 06, 2019</span>
+            
+
+        </div>
+        <div class="content markdown">
+            <blockquote>
+<p>本例中会用到的额外服务有mysql，rabbitmq。部署中有一些需要特别注意的地方也会给大家说一说。</p>
+</blockquote>
+<h1 id="1-创建专属网络"><a href="#1-创建专属网络" class="headerlink" title="1.创建专属网络"></a>1.创建专属网络</h1><p>开始前先创建一个专用的虚拟网络：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">brick@brick:~$ docker network create django_web</span><br></pre></td></tr></table></figure>
+
+<p>后面的服务都会使用这个专属网络进行通信，主机名就是域名地址，通信地址直接填主机名，docker提供了域名解析，所以我settings.py的数据库以及rabbitmq配置如下:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">DATABASES = &#123;</span><br><span class="line">        &apos;default&apos;: &#123;</span><br><span class="line">            &apos;ENGINE&apos;: &apos;django.db.backends.mysql&apos;,</span><br><span class="line">            &apos;NAME&apos;:&apos;my_database&apos;,</span><br><span class="line">            &apos;HOST&apos;:&apos;django_mysql&apos;,</span><br><span class="line">            &apos;PORT&apos;: 3306,</span><br><span class="line">            &apos;USER&apos;:&apos;admin&apos;,</span><br><span class="line">            &apos;PASSWORD&apos;:&apos;123456&apos;,</span><br><span class="line">        &#125;</span><br><span class="line">import djcelery</span><br><span class="line">djcelery.setup_loader()</span><br><span class="line">CELERYBEAT_SCHEDULER = &apos;djcelery.schedulers.DatabaseScheduler&apos;</span><br><span class="line">BROKER_URL = &apos;amqp://admin:123456@rabbitmq:5672&apos;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h1 id="2-部署Mysql"><a href="#2-部署Mysql" class="headerlink" title="2.部署Mysql"></a>2.部署Mysql</h1><h4 id="拉取mysql镜像"><a href="#拉取mysql镜像" class="headerlink" title="拉取mysql镜像"></a>拉取mysql镜像</h4><ul>
+<li>拉取mysql镜像</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">brick@brick:~$ docker pull registry.docker-cn.com/library/mysql</span><br><span class="line">Using default tag: latest</span><br><span class="line">latest: Pulling from library/mysql</span><br><span class="line">802b00ed6f79: Already exists</span><br><span class="line">30f19a05b898: Pull complete</span><br><span class="line">3e43303be5e9: Pull complete</span><br><span class="line">94b281824ae2: Pull complete</span><br><span class="line">51eb397095b1: Pull complete</span><br><span class="line">54567da6fdf0: Pull complete</span><br><span class="line">bc57ddb85cce: Pull complete</span><br><span class="line">d6cd3c7302aa: Pull complete</span><br><span class="line">d8263dad8dbb: Pull complete</span><br><span class="line">780f2f86056d: Pull complete</span><br><span class="line">8e0761cb58cd: Pull complete</span><br><span class="line">7588cfc269e5: Pull complete</span><br><span class="line">Digest: sha256:038f5f6ea8c8f63cfce1bce9c057ab3691cad867e18da8ad4ba6c90874d0537a</span><br><span class="line">Status: Downloaded newer image for registry.docker-cn.com/library/mysql:latest</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>部署mysql服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">brick@brick:~$ docker run -d -p 3307:3306 --network django_web --name django_mysql -v $PWD/db:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 -e MYSQL_USER=admin -e MYSQL_PASSWORD=123456  mysql:latest</span><br><span class="line"># 说明下参数意义</span><br><span class="line"># -p 映射端口:docker内部端口： 端口映射，只有将容器端口映射到外部，外部才能访问</span><br><span class="line"># -e 环境变量，指定一些服务内读取的变量，以初始化服务，这里的变量意义从字面上不难理解</span><br><span class="line"># --network 指定容器所在网络，需要互相访问的容器记得指定到同一个网络！</span><br><span class="line"># --name 容器名，这个名字在同一个容器网络里是可以直接当成域名访问的！</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>测试</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">mysql -uroot -P3307 -p -e &quot;show databases;&quot;</span><br><span class="line">Enter password:</span><br><span class="line">+--------------------+</span><br><span class="line">| Database           |</span><br><span class="line">+--------------------+</span><br><span class="line">| information_schema |</span><br><span class="line">| mysql              |</span><br><span class="line">| performance_schema |</span><br><span class="line">| sys                |</span><br><span class="line">+--------------------+</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<p>记得创建自己要用的数据库 create database</p>
+<hr>
+<h1 id="3-部署Rabbit-MQ"><a href="#3-部署Rabbit-MQ" class="headerlink" title="3.部署Rabbit MQ"></a>3.部署Rabbit MQ</h1><p>因为项目用到了djcelery定时任务，所以需要部署Rabbit MQ</p>
+<ul>
+<li><p>拉取rabbit mq镜像</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">brick@brick:~$ docker pull registry.docker-cn.com/library/rabbitmq:management</span><br><span class="line">management: Pulling from library/rabbitmq</span><br><span class="line">802b00ed6f79: Already exists</span><br><span class="line">84fe35f04ebe: Pull complete</span><br><span class="line">72a118dc68c2: Pull complete</span><br><span class="line">51c199718697: Pull complete</span><br><span class="line">e74b797281ea: Pull complete</span><br><span class="line">f2b0494f0e3c: Pull complete</span><br><span class="line">d43b5d7d2745: Pull complete</span><br><span class="line">dedfc544656e: Pull complete</span><br><span class="line">ed99f98ab240: Pull complete</span><br><span class="line">422ec57c0d17: Pull complete</span><br><span class="line">85c41b55ab02: Pull complete</span><br><span class="line">8d040d0f68fe: Pull complete</span><br><span class="line">881b91c66b89: Pull complete</span><br><span class="line">06bcf7b1b9c9: Pull complete</span><br><span class="line">Digest: sha256:a4ae5d7965167e593299bbc12298614f4f6e339492be21f245592994128047b9</span><br><span class="line">Status: Downloaded newer image for registry.docker-cn.com/library/rabbitmq:management</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>部署mq服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">brick@brick:~$ docker run -d --network django_web --name rabbitmq -p 25678:25672 -p 15678:15671 -p 15679:15672 -p 4370:4369 -p 5678:5671 -p 5679:5672 -e RABBITMQ_DEFAULT_USER=admin -e RABBITMQ_DEFAULT_PASS=123456 rabbitmq:management</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>访问ok<br><img src="https://upload-images.jianshu.io/upload_images/13918519-a71b878bb3eb348c.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="image.png"></p>
+</li>
+<li><p>访问后记得在admin里面，配置一个用户，并且给他授权，django需要用这个用户访问<br><img src="https://upload-images.jianshu.io/upload_images/13918519-fb98ab3b6d211268.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="image.png"><br>创建后点击用户名，设置权限<br><img src="https://upload-images.jianshu.io/upload_images/13918519-a1cd81b150b1b965.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="image.png"></p>
+</li>
+</ul>
+<hr>
+<h1 id="4-部署Django应用"><a href="#4-部署Django应用" class="headerlink" title="4.部署Django应用"></a>4.部署Django应用</h1><ul>
+<li><p>获取基础镜像 python2.7</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">brick@brick:~$ docker pull registry.docker-cn.com/library/python:2.7</span><br><span class="line">2.7: Pulling from library/python</span><br><span class="line">05d1a5232b46: Pull complete</span><br><span class="line">5cee356eda6b: Pull complete</span><br><span class="line">89d3385f0fd3: Pull complete</span><br><span class="line">80ae6b477848: Pull complete</span><br><span class="line">28bdf9e584cc: Pull complete</span><br><span class="line">a0cd6b0afff0: Pull complete</span><br><span class="line">cd4c682e75b6: Pull complete</span><br><span class="line">ac1b7290f23f: Pull complete</span><br><span class="line">5c60877508b0: Pull complete</span><br><span class="line">Digest: sha256:7bcab0fc96ed01ef05ecb52ddb0d9d728927fe1f307205ea8dc5269d2cae9a83</span><br><span class="line">Status: Downloaded newer image for registry.docker-cn.com/library/python:2.7</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>编写部署Django的Dockerfile</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"># use base python image with python 2.7</span><br><span class="line">FROM python:2.7</span><br><span class="line"></span><br><span class="line"># install mysql-client</span><br><span class="line">RUN apt-get update</span><br><span class="line">RUN apt-get install -y mysql-client</span><br><span class="line"></span><br><span class="line"># env</span><br><span class="line">ENV RUN_MODE=DEPLOY</span><br><span class="line"></span><br><span class="line"># add project to the image</span><br><span class="line">ADD ./my_project/ /app/</span><br><span class="line"></span><br><span class="line"># set working directory to /app/</span><br><span class="line">WORKDIR /app/</span><br><span class="line"></span><br><span class="line"># install python dependencies</span><br><span class="line">RUN pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple</span><br><span class="line"></span><br><span class="line"># RUN server after docker is up</span><br><span class="line">CMD ./start.sh</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<p>特别注意：</p>
+<ol>
+<li>命令 python manage.py runserver 默认监听为本地 127.0.0.1:8000，所以即使通过端口映射出去，外面也无法访问，必须特别指定监听端口为python manage.py runserver 0.0.0.0:8000，监听所有的地址请求，还有就是不要把服务都放在后台运行，如果都放在后台，只使用-d参数的话，docker把命令跑完就会自行退出了，所以我的start.sh如下:</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">#!/bin/sh</span><br><span class="line"></span><br><span class="line">python manage.py celery beat &amp;</span><br><span class="line">python manage.py celery worker &amp;</span><br><span class="line">python manage.py runserver 0.0.0.0:8000 #前台运行</span><br><span class="line">#注意： 这样日志结构会比较乱，你也可以拆成3个容器来跑</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>启动时报错：django.db.utils.OperationalError: (2059, “Authentication plugin ‘caching_sha2_password’ cannot be loaded: /usr/lib/x86_64-linux-gnu/mariadb18/plugin/caching_sha2_password.so: cannot open shared object file: No such file or directory”)<br>这个错误一般是由于mysql8的默认认证方式是caching_sha2_password，django暂时不支持这种验证方式，我django版本是1.11.15，再高版本的不一定会出这个问题，mysql5.x一般不会有这种问题<br>解决办法： 登录到mysql中，修改mysql的验证方式<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"># brick @ brick in ~ on git:master o [13:04:04] </span><br><span class="line">$ sudo docker exec -it 08 /bin/bash</span><br><span class="line">root@08b443907f25:/# mysql -uroot -p</span><br><span class="line">Enter password: </span><br><span class="line">Welcome to the MySQL monitor.  Commands end with ; or \g.</span><br><span class="line">Your MySQL connection id is 8</span><br><span class="line">Server version: 8.0.12 MySQL Community Server - GPL</span><br><span class="line"></span><br><span class="line">Copyright (c) 2000, 2018, Oracle and/or its affiliates. All rights reserved.</span><br><span class="line"></span><br><span class="line">Oracle is a registered trademark of Oracle Corporation and/or its</span><br><span class="line">affiliates. Other names may be trademarks of their respective</span><br><span class="line">owners.</span><br><span class="line"></span><br><span class="line">Type &apos;help;&apos; or &apos;\h&apos; for help. Type &apos;\c&apos; to clear the current input statement.</span><br><span class="line"></span><br><span class="line">mysql&gt; use mysql;</span><br><span class="line">mysql&gt; select Host,User,plugin from user where User=&apos;admin&apos;\G;</span><br><span class="line">*************************** 1. row ***************************</span><br><span class="line">  Host: %</span><br><span class="line">  User: admin</span><br><span class="line">plugin: caching_sha2_password</span><br><span class="line">mysql&gt; alter user &apos;admin&apos; @&apos;%&apos; identified with mysql_native_password by &apos;123456&apos;;</span><br><span class="line">mysql&gt; flush privileges;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<ul>
+<li><p>在Dockerfile所在目录进行构建</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">$ docker build . -t django_web</span><br><span class="line">Sending build context to Docker daemon  234.1MB</span><br><span class="line">Step 1/8 : FROM python:2.7</span><br><span class="line"> ---&gt; 4ee4ea2f0113</span><br><span class="line"># 后面balabala省略，就是一顿安装</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>启动django服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ docker run -d --network django_web --name django_web -p 8081:8000 django_web</span><br><span class="line">c8732b1a06f0f96eb6249a7cfb2d8f4d54efbc7a776a8f5737b2bf65338eb44b</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<hr>
+<p>ok! 大功告成，访问试试看吧<br><img src="https://upload-images.jianshu.io/upload_images/13918519-0da7a8c1981ec602.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240" alt="image.png"></p>
+
+            <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+            <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="false">
+                <source type="audio/mpeg" src="">
+            </audio>
+            
+                <ul id="audio-list" style="display:none">
+                    
+                        <li title='0' data-url='http://link.hhtjim.com/163/5146554.mp3'></li>
+                    
+                        <li title='1' data-url='http://link.hhtjim.com/qq/001faIUs4M2zna.mp3'></li>
+                    
+                </ul>
+            
+        </div>
+        
+    <div id='gitalk-container' class="comment link"
+        data-ae='false'
+        data-ci=''
+        data-cs=''
+        data-r=''
+        data-o=''
+        data-a=''
+        data-d='false'
+    >查看评论</div>
+
+
+    </div>
+    
+</div>
+
+
+    </div>
+</div>
+</body>
+<script src="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/brick.github.repo.io/js/plugin.js"></script>
+<script src="/brick.github.repo.io/js/diaspora.js"></script>
+<link rel="stylesheet" href="/brick.github.repo.io/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/brick.github.repo.io/photoswipe/default-skin/default-skin.css">
+<script src="/brick.github.repo.io/photoswipe/photoswipe.min.js"></script>
+<script src="/brick.github.repo.io/photoswipe/photoswipe-ui-default.min.js"></script>
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+</html>

@@ -1,0 +1,242 @@
+
+<!DOCTYPE html>
+<html lang class="loading">
+<head><meta name="generator" content="Hexo 3.9.0">
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Docker Swarm集群部署 - Hexo</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="google" content="notranslate">
+    <meta name="keywords" content="Fechin,"> 
+    <meta name="description" content="
+之前在生产，测试环境都接触过docker swarm，但没实际部署过，趁着部署自己做的django应用，练一练手。
+
+#1.创建虚拟主机：
+1234567891011121314151617181,"> 
+    <meta name="author" content="John Doe"> 
+    <link rel="alternative" href="atom.xml" title="Hexo" type="application/atom+xml"> 
+    <link rel="icon" href="/brick.github.repo.io/img/favicon.png"> 
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.css">
+    <link rel="stylesheet" href="/brick.github.repo.io/css/diaspora.css">
+    <script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+    <script>
+         (adsbygoogle = window.adsbygoogle || []).push({
+              google_ad_client: "ca-pub-8691406134231910",
+              enable_page_level_ads: true
+         });
+    </script>
+    <script async custom-element="amp-auto-ads" src="https://cdn.ampproject.org/v0/amp-auto-ads-0.1.js">
+    </script>
+</head>
+</html>
+<body class="loading">
+    <span id="config-title" style="display:none">Hexo</span>
+    <div id="loader"></div>
+    <div id="single">
+    <div id="top" style="display: block;">
+    <div class="bar" style="width: 0;"></div>
+    <a class="icon-home image-icon" href="javascript:;" data-url="https://brickomg.github.io/brick.github.repo.io"></a>
+    <div title="播放/暂停" class="icon-play"></div>
+    <h3 class="subtitle">Docker Swarm集群部署</h3>
+    <div class="social">
+        <!--<div class="like-icon">-->
+            <!--<a href="javascript:;" class="likeThis active"><span class="icon-like"></span><span class="count">76</span></a>-->
+        <!--</div>-->
+        <div>
+            <div class="share">
+                <a title="获取二维码" class="icon-scan" href="javascript:;"></a>
+            </div>
+            <div id="qr"></div>
+        </div>
+    </div>
+    <div class="scrollbar"></div>
+</div>
+
+    <div class="section">
+        <div class="article">
+    <div class='main'>
+        <h1 class="title">Docker Swarm集群部署</h1>
+        <div class="stuff">
+            <span>七月 06, 2019</span>
+            
+
+        </div>
+        <div class="content markdown">
+            <blockquote>
+<p>之前在生产，测试环境都接触过docker swarm，但没实际部署过，趁着部署自己做的django应用，练一练手。</p>
+</blockquote>
+<p>#1.创建虚拟主机：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">λ brick [~] → docker-machine create --driver virtualbox Manager1   #命令会默认使用boot2docker.iso镜像创建</span><br><span class="line"></span><br><span class="line">λ brick [~] → docker-machine create --driver virtualbox Worker1</span><br><span class="line">Running pre-create checks...</span><br><span class="line">Creating machine...</span><br><span class="line">(Worker1) Copying /Users/brick/.docker/machine/cache/boot2docker.iso to /Users/brick/.docker/machine/machines/Worker1/boot2docker.iso...</span><br><span class="line">(Worker1) Creating VirtualBox VM...</span><br><span class="line">(Worker1) Creating SSH key...</span><br><span class="line">(Worker1) Starting the VM...</span><br><span class="line">(Worker1) Check network to re-create if needed...</span><br><span class="line">(Worker1) Waiting for an IP...</span><br><span class="line">Waiting for machine to be running, this may take a few minutes...</span><br><span class="line">Detecting operating system of created instance...</span><br><span class="line">Waiting for SSH to be available...</span><br><span class="line">Detecting the provisioner...</span><br><span class="line">Provisioning with boot2docker...</span><br><span class="line">Copying certs to the local machine directory...</span><br><span class="line">Copying certs to the remote machine...</span><br><span class="line">Setting Docker configuration on the remote daemon...</span><br><span class="line">Checking connection to Docker...</span><br><span class="line">Docker is up and running!</span><br><span class="line">To see how to connect your Docker Client to the Docker Engine running on this virtual machine, run: docker-machine env Worker1\.</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li>创建完毕可以使用docker-machine env查看环境变量，使用 docker-machine ls 命令查看当前状态</li>
+</ul>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">λ brick [~] → docker-machine env Worker1</span><br><span class="line"></span><br><span class="line">export DOCKER_TLS_VERIFY=&quot;1&quot;</span><br><span class="line"></span><br><span class="line">export DOCKER_HOST=&quot;[tcp://192.168.99.101:2376](tcp://192.168.99.101:2376)&quot;</span><br><span class="line"></span><br><span class="line">export DOCKER_CERT_PATH=&quot;/Users/brick/.docker/machine/machines/Worker1&quot;</span><br><span class="line"></span><br><span class="line">export DOCKER_MACHINE_NAME=&quot;Worker1&quot;</span><br><span class="line"></span><br><span class="line"># Run this command to configure your shell:</span><br><span class="line"></span><br><span class="line"># eval $(docker-machine env Worker1)</span><br><span class="line"></span><br><span class="line">λ brick [~] → docker-machine ls</span><br><span class="line"></span><br><span class="line">NAME       ACTIVE   DRIVER       STATE     URL                         SWARM   DOCKER        ERRORS</span><br><span class="line"></span><br><span class="line">Manager1   -        virtualbox   Running   [tcp://192.168.99.100:2376](tcp://192.168.99.100:2376)           v18.06.1-ce</span><br><span class="line"></span><br><span class="line">Worker1    -        virtualbox   Running   [tcp://192.168.99.101:2376](tcp://192.168.99.101:2376)           v18.06.1-ce</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>目前虚拟主机创建完成，主机之间没有关系，下面来建立Swarm集群关系</li>
+</ul>
+<h1 id="2-建立Swarm集群关系："><a href="#2-建立Swarm集群关系：" class="headerlink" title="2. 建立Swarm集群关系："></a>2. 建立Swarm集群关系：</h1><ul>
+<li><p>首先介绍下进入虚拟机的方法：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">λ brick [~] → docker-machine ssh Manager1</span><br><span class="line"></span><br><span class="line">                        ##         .</span><br><span class="line"></span><br><span class="line">                  ## ## ##        ==</span><br><span class="line"></span><br><span class="line">               ## ## ## ## ##    ===</span><br><span class="line"></span><br><span class="line">           /&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;&quot;\___/ ===</span><br><span class="line"></span><br><span class="line">      ~~~ &#123;~~ ~~~~ ~~~ ~~~~ ~~~ ~ /  ===- ~~~</span><br><span class="line"></span><br><span class="line">           \______ o           __/</span><br><span class="line"></span><br><span class="line">             \    \         __/</span><br><span class="line"></span><br><span class="line">              \____\_______/</span><br><span class="line"></span><br><span class="line">_                 _   ____     _            _</span><br><span class="line"></span><br><span class="line">| |__   ___   ___ | |_|___ \ __| | ___   ___| | _____ _ __</span><br><span class="line"></span><br><span class="line">| &apos;_ \ / _ \ / _ \| __| __) / _` |/ _ \ / __| |/ / _ \ &apos;__|</span><br><span class="line"></span><br><span class="line">| |_) | (_) | (_) | |_ / __/ (_| | (_) | (__|   &lt;  __/ |</span><br><span class="line"></span><br><span class="line">|_.__/ \___/ \___/ \__|_____\__,_|\___/ \___|_|\_\___|_|</span><br><span class="line"></span><br><span class="line">Boot2Docker version 18.06.1-ce, build HEAD : c7e5c3e - Wed Aug 22 16:27:42 UTC 2018</span><br><span class="line"></span><br><span class="line">Docker version 18.06.1-ce, build e68fc7a</span><br></pre></td></tr></table></figure>
+
+<p>接下来开始建立集群关系</p>
+</li>
+<li><p>首先初始化Manager1</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">λ brick [~] → docker-machine ssh Manager1 docker swarm init --listen-addr 192.168.99.100:2377 --advertise-addr 192.168.99.100</span><br><span class="line"></span><br><span class="line">Swarm initialized: current node (rqpfrj4275wmprkolyn5xc4lv) is now a manager.</span><br><span class="line"></span><br><span class="line">To add a worker to this swarm, run the following command:</span><br><span class="line"></span><br><span class="line">    docker swarm join --token SWMTKN-1-4g5n38ltezp4kcr4475hbiyuuvmboptdd40cw6ornwloua36fx-abu5norpke47qkaj5fq3p0961 192.168.99.100:2377</span><br><span class="line"></span><br><span class="line">To add a manager to this swarm, run &apos;docker swarm join-token manager&apos; and follow the instructions.</span><br><span class="line"></span><br><span class="line">#第一段 docker-machine ssh Manager1 就是进入虚拟机，如果是在实体机上则不需要，可以直接docker swarm init，第二段就是初始化swarm。</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>如果需要多个Manager，则需要获取集群加入Manager的Token：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">λ brick [~] → docker-machine ssh Manager1 docker swarm join-token manager</span><br><span class="line"></span><br><span class="line">To add a manager to this swarm, run the following command:</span><br><span class="line"></span><br><span class="line">    docker swarm join --token SWMTKN-1-4g5n38ltezp4kcr4475hbiyuuvmboptdd40cw6ornwloua36fx-9k2ik00lho3opuvuqbgutezyc 192.168.99.100:2377</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>接下来获取Worker加入的Token</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">λ brick [~] → docker-machine ssh Manager1 docker swarm join-token worker</span><br><span class="line"></span><br><span class="line">To add a worker to this swarm, run the following command:</span><br><span class="line"></span><br><span class="line">    docker swarm join --token SWMTKN-1-4g5n38ltezp4kcr4475hbiyuuvmboptdd40cw6ornwloua36fx-abu5norpke47qkaj5fq3p0961 192.168.99.100:2377</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<ul>
+<li>其他主机加入集群，接下来加入worker，加入Manager则需要替换Token为Manager Token：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">λ brick [~] → docker-machine ssh worker1 docker swarm join --token SWMTKN-1-4g5n38ltezp4kcr4475hbiyuuvmboptdd40cw6ornwloua36fx-abu5norpke47qkaj5fq3p0961 192.168.99.100:2377</span><br><span class="line"></span><br><span class="line">This node joined a swarm as a worker.</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<ul>
+<li>到这里集群就初始化完成了，查看集群状态：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">λ brick [~] → docker-machine ssh Manager1 docker node ls</span><br><span class="line"></span><br><span class="line">ID                            HOSTNAME            STATUS              AVAILABILITY        MANAGER STATUS      ENGINE VERSION</span><br><span class="line"></span><br><span class="line">rqpfrj4275wmprkolyn5xc4lv *   Manager1            Ready               Active              Leader              18.06.1-ce</span><br><span class="line"></span><br><span class="line">l2snsykhcb0aamcybudadd5j2     Worker1             Ready               Active                                  18.06.1-ce</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h1 id="3-网络与部署服务"><a href="#3-网络与部署服务" class="headerlink" title="3. 网络与部署服务"></a>3. 网络与部署服务</h1><ul>
+<li><p>查看集群网络状态：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">λ brick [~] → docker-machine ssh Manager1 docker network ls</span><br><span class="line"></span><br><span class="line">NETWORK ID          NAME                DRIVER              SCOPE</span><br><span class="line"></span><br><span class="line">0dde92fc25d0        bridge              bridge              local</span><br><span class="line"></span><br><span class="line">2e636adb3dc7        docker_gwbridge     bridge              local</span><br><span class="line"></span><br><span class="line">928cd824a8a6        host                host                local</span><br><span class="line"></span><br><span class="line">lske5xp48ozu        ingress             overlay             swarm</span><br><span class="line"></span><br><span class="line">170c25ea6308        none                null                local</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>创建一个跨主机网络：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">λ brick [~] → docker-machine ssh Manager1 docker network create -d overlay --attachable --subnet=192.168.0.0/16 --gateway=192.168.0.100 test_network</span><br><span class="line"></span><br><span class="line">mik7b8hen2p09swm16a4k683v</span><br><span class="line"></span><br><span class="line">#参数说明：</span><br><span class="line"></span><br><span class="line">#overlay 虚拟网络驱动类型</span><br><span class="line"></span><br><span class="line">#--attachable 允许其他主机加入网络</span><br><span class="line"></span><br><span class="line">#--subnet 子网网段</span><br><span class="line"></span><br><span class="line">#--gateway 网关地址</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<ul>
+<li>拉取nginx镜像用于测试：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">λ brick [~] → docker-machine ssh Manager1 docker pull[registry.docker-cn.com/library/nginx](http://registry.docker-cn.com/library/nginx)</span><br><span class="line"></span><br><span class="line">Using default tag: latest</span><br><span class="line"></span><br><span class="line">latest: Pulling from library/nginx</span><br><span class="line"></span><br><span class="line">802b00ed6f79: Pulling fs layer</span><br><span class="line"></span><br><span class="line">e9d0e0ea682b: Pulling fs layer</span><br><span class="line"></span><br><span class="line">d8b7092b9221: Pulling fs layer</span><br><span class="line"></span><br><span class="line">d8b7092b9221: Verifying Checksum</span><br><span class="line"></span><br><span class="line">d8b7092b9221: Download complete</span><br><span class="line"></span><br><span class="line">e9d0e0ea682b: Verifying Checksum</span><br><span class="line"></span><br><span class="line">e9d0e0ea682b: Download complete</span><br><span class="line"></span><br><span class="line">802b00ed6f79: Verifying Checksum</span><br><span class="line"></span><br><span class="line">802b00ed6f79: Download complete</span><br><span class="line"></span><br><span class="line">802b00ed6f79: Pull complete</span><br><span class="line"></span><br><span class="line">e9d0e0ea682b: Pull complete</span><br><span class="line"></span><br><span class="line">d8b7092b9221: Pull complete</span><br><span class="line"></span><br><span class="line">Digest: sha256:24a0c4b4a4c0eb97a1aabb8e29f18e917d05abfe1b7a7c07857230879ce7d3d3</span><br><span class="line"></span><br><span class="line">Status: Downloaded newer image for[registry.docker-cn.com/library/nginx:latest](http://registry.docker-cn.com/library/nginx:latest)</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<ul>
+<li>接下来部署服务：<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><span class="line">λ brick → docker-machine ssh Manager1 docker service create--publish published=80,target=80 --replicas 2 --name helloworld --network=test_network nginx</span><br><span class="line"></span><br><span class="line">kx5ptsjersb5m7pr5e47hi4f4</span><br><span class="line"></span><br><span class="line">overall progress: 0 out of 2 tasks</span><br><span class="line"></span><br><span class="line">1/2:</span><br><span class="line"></span><br><span class="line">2/2:</span><br><span class="line"></span><br><span class="line">overall progress: 0 out of 2 tasks</span><br><span class="line"></span><br><span class="line">overall progress: 1 out of 2 tasks</span><br><span class="line"></span><br><span class="line">overall progress: 2 out of 2 tasks</span><br><span class="line"></span><br><span class="line">verify: Waiting 5 seconds to verify that tasks are stable...</span><br><span class="line"></span><br><span class="line">verify: Waiting 4 seconds to verify that tasks are stable...</span><br><span class="line"></span><br><span class="line">verify: Waiting 3 seconds to verify that tasks are stable...</span><br><span class="line"></span><br><span class="line">verify: Waiting 2 seconds to verify that tasks are stable...</span><br><span class="line"></span><br><span class="line">verify: Waiting 1 seconds to verify that tasks are stable...</span><br><span class="line"></span><br><span class="line">verify: Service converged</span><br><span class="line"></span><br><span class="line">#--publish published=80,target=80 映射端口，对外端口80，映射到容器80。 映射完成后所有节点都能访问80端口</span><br><span class="line">#--replicas 指定实例数量</span><br><span class="line"></span><br><span class="line">λ brick [~] → docker-machine ssh Manager1 docker service ls   #查看服务状态</span><br><span class="line"></span><br><span class="line">ID                  NAME                MODE                REPLICAS            IMAGE               PORTS</span><br><span class="line"></span><br><span class="line">kx5ptsjersb5        helloworld          replicated2/2nginx:latest</span><br><span class="line"></span><br><span class="line">λ brick_tezign [~] → docker-machine ssh Manager1 docker service ps helloworld.#查看服务状态, 可以看到具体运行在哪个node</span><br><span class="line"></span><br><span class="line">ID                  NAME                IMAGE               NODE                DESIRED STATE       CURRENT STATE             ERROR                              PORTS</span><br><span class="line"></span><br><span class="line">9dj38dzmhgjp        helloworld.1        nginx:latest        Worker1             Running             Running 20 minutes ago</span><br><span class="line"></span><br><span class="line">vzr9dunuj3e0        helloworld.2        nginx:latest        Manager1            Running             Running 20 minutes ago</span><br><span class="line"></span><br><span class="line">l5xlqc6pwusk         \_ helloworld.2    nginx:latest        Manager1            Shutdown            Rejected 21 minutes ago   &quot;No such image: nginx:latest@s…&quot;</span><br><span class="line"></span><br><span class="line">i43egfl03bgm         \_ helloworld.2    nginx:latest        Manager1            Shutdown            Rejected 21 minutes ago   &quot;No such image: nginx:latest@s…&quot;</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<ul>
+<li><p>进入容器：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">docker-machine ssh Manager1 #进入虚拟机Manager1</span><br><span class="line"></span><br><span class="line">docker@Manager1:~$ docker ps -a #查看Manager1上运行的容器</span><br><span class="line"></span><br><span class="line">CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES</span><br><span class="line"></span><br><span class="line">501e6609af46        nginx:latest        &quot;nginx -g &apos;daemon of…&quot;   42 minutes ago      Up 42 minutes       80/tcp              helloworld.2.vzr9dunuj3e0vcv2xl2xso84j</span><br><span class="line"></span><br><span class="line">docker@Manager1:~$ docker exec -it 501e6609af46 /bin/bash  #以bash进入容器</span><br><span class="line"></span><br><span class="line">root@501e6609af46:/#</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>服务部署完毕</p>
+</li>
+</ul>
+<p>更多swarm相关操作请自行google，这里不再赘述</p>
+
+            <!--[if lt IE 9]><script>document.createElement('audio');</script><![endif]-->
+            <audio id="audio" loop="1" preload="auto" controls="controls" data-autoplay="false">
+                <source type="audio/mpeg" src="">
+            </audio>
+            
+                <ul id="audio-list" style="display:none">
+                    
+                        <li title='0' data-url='http://link.hhtjim.com/163/5146554.mp3'></li>
+                    
+                        <li title='1' data-url='http://link.hhtjim.com/qq/001faIUs4M2zna.mp3'></li>
+                    
+                </ul>
+            
+        </div>
+        
+    <div id='gitalk-container' class="comment link"
+        data-ae='false'
+        data-ci=''
+        data-cs=''
+        data-r=''
+        data-o=''
+        data-a=''
+        data-d='false'
+    >查看评论</div>
+
+
+    </div>
+    
+</div>
+
+
+    </div>
+</div>
+</body>
+<script src="//cdn.jsdelivr.net/npm/gitalk@1/dist/gitalk.min.js"></script>
+<script src="//lib.baomitu.com/jquery/1.8.3/jquery.min.js"></script>
+<script src="/brick.github.repo.io/js/plugin.js"></script>
+<script src="/brick.github.repo.io/js/diaspora.js"></script>
+<link rel="stylesheet" href="/brick.github.repo.io/photoswipe/photoswipe.css">
+<link rel="stylesheet" href="/brick.github.repo.io/photoswipe/default-skin/default-skin.css">
+<script src="/brick.github.repo.io/photoswipe/photoswipe.min.js"></script>
+<script src="/brick.github.repo.io/photoswipe/photoswipe-ui-default.min.js"></script>
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+            <div class="pswp__top-bar">
+                <!--  Controls are self-explanatory. Order can be changed. -->
+                <div class="pswp__counter"></div>
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+                <button class="pswp__button pswp__button--share" title="Share"></button>
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                      <div class="pswp__preloader__cut">
+                        <div class="pswp__preloader__donut"></div>
+                      </div>
+                    </div>
+                </div>
+            </div>
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div> 
+            </div>
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+</html>
